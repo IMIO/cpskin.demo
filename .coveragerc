@@ -1,0 +1,6 @@
+[report]
+include =
+    cpskin/*
+omit =
+    */test*
+    */upgrades/*
