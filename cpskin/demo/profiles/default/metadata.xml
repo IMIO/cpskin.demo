@@ -2,5 +2,10 @@
 <metadata>
   <version>1000</version>
   <dependencies>
+    <!-- <dependency>profile-plone.app.contenttypes:plone-content</dependency> -->
+    <dependency>profile-collective.contentleadimage:default</dependency>
+    <dependency>profile-collective.plonetruegallery:default</dependency>
+    <!-- <dependency>profile-cpskin.policy:dx</dependency> -->
+    <dependency>profile-cpskin.policy:default</dependency>
   </dependencies>
 </metadata>
