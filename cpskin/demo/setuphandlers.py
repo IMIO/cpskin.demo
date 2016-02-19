@@ -1,28 +1,36 @@
 # -*- coding: utf-8 -*-
 from plone import api
+from plone.app.event.dx.behaviors import IEventBasic
+from plone.app.event.interfaces import IEventSettings
+from plone.registry.interfaces import IRegistry
+from zope.component import getUtility
 import datetime
-from DateTime import DateTime
 import os
 
 
 def post_install(context):
-    """Post install script"""
+    """Post install script."""
     if context.readDataFile('cpskindemo_default.txt') is None:
         return
-    # Do something during the installation of this package
+
     portal = context.getSite()
-    # api.content.delete(obj=portal['front-page'])
+    # frontpage = api.content.get('/front-page')
+    # frontpage.processForm()
+    # Edit frontpage to have explain text on how use demo site
     add_events(portal)
     add_news(portal)
-    add_alaune(portal)
     add_folders(portal)
     add_album(portal)
-    # test migration
-    # ps = api.portal.get_tool(name='portal_setup')
-    # ps.runAllImportStepsFromProfile('profile-cpskin.policy:migratetodx')
+    add_users(portal)
 
 
 def add_events(portal):
+    """Add some demo events."""
+    timezone = 'Europe/Brussels'
+    reg = getUtility(IRegistry)
+    settings = reg.forInterface(IEventSettings, prefix="plone.app.event")
+    if not settings.portal_timezone:
+        settings.portal_timezone = timezone
     event_folder = api.content.get('/evenements')
     now = datetime.datetime.now()
     tomorrow = datetime.datetime(now.year, now.month, now.day + 1)
@@ -62,12 +70,10 @@ def add_events(portal):
         )
         event.title = e['title']
         event.description = e['desc']
-        event.startDate = DateTime(e['start'])
-        if not e.get('end'):
-            # check all_day case
-            pass
-        else:
-            event.endDate = DateTime(e['end'])
+        event.timezone = timezone
+        behavior = IEventBasic(event)
+        behavior.start = e['start']
+        behavior.end = e['end']
         add_leadimage_from_file(event, e['img'])
         if e.get('alaune'):
             add_alaune(event)
@@ -106,12 +112,14 @@ def add_news(portal):
 
 def add_alaune(obj):
     obj.hiddenTags = set([u'a-la-une', ])
+    pass
 
 
 def add_tag(obj, tag={u'id': u'value'}):
     # XXX get older value before adding one new
-    value = set([tag['value'], ])
-    setattr(obj, tag['id'], value)
+    # value = set([tag['value'], ])
+    # setattr(obj, tag['id'], value)
+    pass
 
 
 def add_folders(portal):
@@ -180,69 +188,42 @@ def add_leadimage_from_file(obj, file_name):
     data_path = os.path.join(os.path.dirname(__file__), 'data')
     file_path = os.path.join(data_path, file_name)
     if not obj.hasObject(file_name):
-        portal_types = api.portal.get_tool('portal_types')
-        if portal_types.get('Image').meta_type != "Dexterity FTI":
-            from collective.contentleadimage.config import IMAGE_FIELD_NAME
-            field = obj.getField(IMAGE_FIELD_NAME)
-
-            fd = open(file_path, 'rb')
-            field.set(obj, fd)
-            fd.close()
-        else:
-            # with deterity image
-            from plone.namedfile.file import NamedBlobImage
-            namedblobimage = NamedBlobImage(
-                data=open(file_path, 'r').read(),
-                filename=unicode(file_name)
-            )
-            image = api.content.create(type='Image',
-                                       title=file_name,
-                                       image=namedblobimage,
-                                       container=api.portal.get(),
-                                       language='fr')
-            image.setTitle(file_name)
-            image.reindexObject()
+        from plone.namedfile.file import NamedBlobImage
+        namedblobimage = NamedBlobImage(
+            data=open(file_path, 'r').read(),
+            filename=unicode(file_name)
+        )
+        image = api.content.create(type='Image',
+                                   title=file_name,
+                                   image=namedblobimage,
+                                   container=api.portal.get(),
+                                   language='fr')
+        image.setTitle(file_name)
+        image.reindexObject()
+        setattr(obj, 'image', namedblobimage)
 
 
 def add_news_image_from_file(obj, file_name):
-    data_path = os.path.join(os.path.dirname(__file__), 'data')
-    file_path = os.path.join(data_path, file_name)
     if not obj.hasObject(file_name):
-        portal_types = api.portal.get_tool('portal_types')
-        if portal_types.get('Image').meta_type != "Dexterity FTI":
-            field = obj.getField('image')
-            fd = open(file_path, 'rb')
-            field.set(obj, fd)
-            fd.close()
-        else:
-            # with deterity image
-            add_leadimage_from_file(obj, file_name)
+        # with deterity image
+        add_leadimage_from_file(obj, file_name)
 
 
 def add_image_from_file(container, file_name):
     data_path = os.path.join(os.path.dirname(__file__), 'data')
     filePath = os.path.join(data_path, file_name)
     if not container.hasObject(file_name):
-        portal_types = api.portal.get_tool('portal_types')
-        if portal_types.get('Image').meta_type != "Dexterity FTI":
-            fd = open(filePath, 'rb')
-            image = api.content.create(type='Image',
-                                       title=file_name,
-                                       container=container,
-                                       file=fd)
-            fd.close()
-        else:
-            # with deterity image
-            from plone.namedfile.file import NamedBlobImage
-            namedblobimage = NamedBlobImage(
-                data=open(filePath, 'r').read(),
-                filename=unicode(file_name)
-            )
-            image = api.content.create(type='Image',
-                                       title=file_name,
-                                       image=namedblobimage,
-                                       container=container,
-                                       language='fr')
+        # with deterity image
+        from plone.namedfile.file import NamedBlobImage
+        namedblobimage = NamedBlobImage(
+            data=open(filePath, 'r').read(),
+            filename=unicode(file_name)
+        )
+        image = api.content.create(type='Image',
+                                   title=file_name,
+                                   image=namedblobimage,
+                                   container=container,
+                                   language='fr')
         image.setTitle(file_name)
         image.reindexObject()
 
@@ -258,3 +239,7 @@ def add_album(portal):
     add_image_from_file(folder, 'meteo.jpg')
     api.content.transition(obj=folder, transition='publish_and_hide')
     folder.setLayout('galleryview')
+
+
+def add_users(portal):
+    pass
