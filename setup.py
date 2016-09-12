@@ -45,6 +45,7 @@ setup(
         'plone.api',
         'setuptools',
         'cpskin.policy',
+        'collective.plonetruegallery',
     ],
     extras_require={
         'test': [
