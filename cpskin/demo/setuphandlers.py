@@ -126,7 +126,9 @@ def add_folders(portal):
     folders = [{
         'ma-commune': {
             u'Vie politique':
-                [u'Collège communal', u'Conseil communal']
+                [u'Collège communal', u'Conseil communal'],
+            u'Services communaux':
+                [ u'Population-Etat civil', u'Informatique', u'Heures d\'ouverture']
         },
         'loisirs': {
             u'Sports':
