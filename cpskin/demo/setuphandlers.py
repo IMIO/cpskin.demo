@@ -7,6 +7,8 @@ from zope.component import getUtility
 import datetime
 import os
 
+from imio.helpers.content import create
+
 
 def post_install(context):
     """Post install script."""
@@ -22,21 +24,6 @@ def post_install(context):
     add_folders(portal)
     add_album(portal)
     add_users(portal)
-
-
-def exists(portal, parent, id='', title='', type=''):
-    pc = portal.portal_catalog
-    params = {'path': {'query': '/'.join(parent.getPhysicalPath()), 'depth': 1}}
-    if id:
-        params['id'] = id
-    if title:
-        params['Title'] = title
-    if type:
-        params['portal_type'] = type
-    brains = pc(**params)
-    if brains:
-        return brains[0].getObject()
-    return None
 
 
 def add_events(portal):
@@ -139,55 +126,135 @@ def add_tag(obj, tag={u'id': u'value'}):
 
 def add_folders(portal):
 
-    def create_folders(portal, folders, transition='publish_and_show'):
-        for dic1 in folders:
-            for f1_id in dic1:
-                f1 = portal.get(f1_id)
-                dic2 = dic1[f1_id]
-                if isinstance(dic2, dict):
-                    for f2_tit in dic2:
-                        f2 = exists(portal, f1, title=f2_tit)
-                        if not f2:
-                            f2 = api.content.create(container=f1, type='Folder', title=f2_tit)
-                            api.content.transition(obj=f2, transition=transition)
-
-                        for f3_tit in dic2[f2_tit]:
-                            f3 = exists(portal, f2, title=f3_tit)
-                            if not f3:
-                                f3 = api.content.create(container=f2, type='Folder', title=f3_tit)
-                                api.content.transition(obj=f3, transition=transition)
-                if isinstance(dic2, list):
-                    for f2_tit in dic2:
-                        f2 = exists(portal, f1, title=f2_tit)
-                        if not f2:
-                            f2 = api.content.create(container=f1, type='Folder', title=f2_tit)
-                            api.content.transition(obj=f2, transition=transition)
-
-    folders_to_show = [
-        {'ma-commune': {
-            u'Vie politique': [u'Collège communal', u'Conseil communal'],
-            u'Services communaux': [u'Population-Etat civil', u'Informatique']
-        }},
-        {'loisirs': {
-            u'Sports': [u'Piscine communale', u'Annuaire des clubs sportifs'],
-            u'Folklores': [u'Carnaval', u'Marché de Noël'],
-            u'Tourisme': [u'Barrage']
-        }},
-        {'economie': {
-            u"L'entreprenariat": [u'CSAM', u'EId'],
-            u'Zonings': [u'Industriels', u'Port'],
-        }},
-        {'je-suis': [u'Jeune', u'Entrepreneur']},
-        {'je-trouve': [u'Démarches administratives', u'Taxes']},
+    folders = [
+        {
+            'cid': 100, 'cont': '/ma-commune', 'typ': 'Folder',
+            'title': u'Vie politique',
+            'trans': ['publish_and_show'],
+        },
+        {
+            'cid': 110, 'cont': 100, 'typ': 'Folder',
+            'title': u'Collège communal',
+            'trans': ['publish_and_show'],
+        },
+        {
+            'cid': 111, 'cont': 100, 'typ': 'Folder',
+            'title': u'Conseil communal',
+            'trans': ['publish_and_show'],
+        },
+        {
+            'cid': 200, 'cont': '/ma-commune', 'typ': 'Folder',
+            'title': u'Services communaux',
+            'trans': ['publish_and_show'],
+        },
+        {
+            'cid': 210, 'cont': 200, 'typ': 'Folder',
+            'title': u'Population-Etat civil',
+            'trans': ['publish_and_show'],
+        },
+        {
+            'cid': 220, 'cont': 200, 'typ': 'Folder',
+            'title': u'Informatique',
+            'trans': ['publish_and_show'],
+        },
+        {
+            'cid': 230, 'cont': 200, 'typ': 'Folder',
+            'title': u"Heures d'ouverture",
+            'trans': ['publish_and_hide'],
+        },
+        {
+            'cid': 300, 'cont': '/loisirs', 'typ': 'Folder',
+            'title': u'Sports',
+            'trans': ['publish_and_show'],
+        },
+        {
+            'cid': 310, 'cont': 300, 'typ': 'Folder',
+            'title': u'Piscine communale',
+            'trans': ['publish_and_show'],
+        },
+        {
+            'cid': 320, 'cont': 300, 'typ': 'Folder',
+            'title': u'Annuaire des clubs sportifs',
+            'trans': ['publish_and_show'],
+        },
+        {
+            'cid': 400, 'cont': '/loisirs', 'typ': 'Folder',
+            'title': u'Folklores',
+            'trans': ['publish_and_show'],
+        },
+        {
+            'cid': 410, 'cont': 400, 'typ': 'Folder',
+            'title': u'Carnaval',
+            'trans': ['publish_and_show'],
+        },
+        {
+            'cid': 420, 'cont': 400, 'typ': 'Folder',
+            'title': u'Marché de Noël',
+            'trans': ['publish_and_show'],
+        },
+        {
+            'cid': 500, 'cont': '/loisirs', 'typ': 'Folder',
+            'title': u'Tourisme',
+            'trans': ['publish_and_show'],
+        },
+        {
+            'cid': 510, 'cont': 500, 'typ': 'Folder',
+            'title': u'Barrage',
+            'trans': ['publish_and_show'],
+        },
+        {
+            'cid': 600, 'cont': '/economie', 'typ': 'Folder',
+            'title': u"L'entreprenariat",
+            'trans': ['publish_and_show'],
+        },
+        {
+            'cid': 610, 'cont': 600, 'typ': 'Folder',
+            'title': u'CSAM',
+            'trans': ['publish_and_show'],
+        },
+        {
+            'cid': 620, 'cont': 600, 'typ': 'Folder',
+            'title': u'EId',
+            'trans': ['publish_and_show'],
+        },
+        {
+            'cid': 700, 'cont': '/economie', 'typ': 'Folder',
+            'title': u'Zonings',
+            'trans': ['publish_and_show'],
+        },
+        {
+            'cid': 710, 'cont': 700, 'typ': 'Folder',
+            'title': u'Industriels',
+            'trans': ['publish_and_show'],
+        },
+        {
+            'cid': 720, 'cont': 700, 'typ': 'Folder',
+            'title': u'Port',
+            'trans': ['publish_and_show'],
+        },
+        {
+            'cid': 800, 'cont': '/je-suis', 'typ': 'Folder',
+            'title': u'Jeune',
+            'trans': ['publish_and_show'],
+        },
+        {
+            'cid': 810, 'cont': '/je-suis', 'typ': 'Folder',
+            'title': u'Entrepreneur',
+            'trans': ['publish_and_show'],
+        },
+        {
+            'cid': 900, 'cont': '/je-trouve', 'typ': 'Folder',
+            'title': u'Démarches administratives',
+            'trans': ['publish_and_show'],
+        },
+        {
+            'cid': 910, 'cont': '/je-trouve', 'typ': 'Folder',
+            'title': u'Taxes',
+            'trans': ['publish_and_show'],
+        },
     ]
-    create_folders(portal, folders_to_show)
 
-    folders_to_hide = [
-        {'ma-commune': {
-            u'Services communaux': [u"Heures d'ouverture"]
-        }},
-    ]
-    create_folders(portal, folders_to_hide, transition='publish_and_hide')
+    create(folders)
 
 
 def add_leadimage_from_file(obj, file_name):

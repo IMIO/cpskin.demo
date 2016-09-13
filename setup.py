@@ -46,6 +46,7 @@ setup(
         'setuptools',
         'cpskin.policy',
         'collective.plonetruegallery',
+        'imio.helpers',
     ],
     extras_require={
         'test': [
