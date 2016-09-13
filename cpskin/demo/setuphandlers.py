@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from plone import api
-from plone.app.event.dx.behaviors import IEventBasic
 from plone.app.event.interfaces import IEventSettings
 from plone.registry.interfaces import IRegistry
 from zope.component import getUtility
@@ -33,54 +32,46 @@ def add_events(portal):
     settings = reg.forInterface(IEventSettings, prefix="plone.app.event")
     if not settings.portal_timezone:
         settings.portal_timezone = timezone
-    event_folder = api.content.get('/evenements')
     now = datetime.datetime.now()
     tomorrow = datetime.datetime(now.year, now.month, now.day + 1)
-    today18 = datetime.datetime(now.year, now.month, now.day, 18)
-    today21 = datetime.datetime(now.year, now.month, now.day, 21)
-    today23 = datetime.datetime(now.year, now.month, now.day, 23)
-    # tomorrow18 = today18 + datetime.timedelta(days=1)
-    tomorrow21 = today21 + datetime.timedelta(days=1)
-    tomorrow23 = today23 + datetime.timedelta(days=1)
-    next_week = tomorrow + datetime.timedelta(weeks=1)
-    events = [{
-        'title': 'Atelier photo',
-        'desc': 'Participer à un atelier photo',
-        'start': today18,
-        'end': today21,
-        'img': 'atelierphoto.jpg',
-        'alaune': True,
-    }, {
-        'title': 'Concert',
-        'desc': 'Participer à notre concert caritatif',
-        'start': tomorrow21,
-        'end': tomorrow23,
-        'img': 'concert.jpg'
-    }, {
-        'title': 'Marché aux fleurs',
-        'desc': 'Vener découvrir notre marché aux fleurs',
-        'start': tomorrow,
-        'end': next_week,
-        'img': 'marcheauxfleurs.jpg'
-    }
+    data_path = os.path.join(os.path.dirname(__file__), 'data')
+    events = [
+        {
+            'cont': '/evenements', 'type': 'Event',
+            'title': 'Atelier photo',
+            'attrs': {'description': 'Participer à un atelier photo',
+                      'start': datetime.datetime(now.year, now.month, now.day, 18),
+                      'end': datetime.datetime(now.year, now.month, now.day, 21),
+                      'timezone': timezone,
+                      'hiddenTags': set([u'a-la-une', ])},
+            'functions': [lead_image],
+            'extra': {'lead_image': {'filepath': os.path.join(data_path, 'atelierphoto.jpg')}},
+            'trans': ['publish_and_hide'],
+        },
+        {
+            'cont': '/evenements', 'type': 'Event',
+            'title': 'Concert',
+            'attrs': {'description': 'Participer à notre concert caritatif',
+                      'start': datetime.datetime(tomorrow.year, tomorrow.month, tomorrow.day, 21),
+                      'end': datetime.datetime(tomorrow.year, tomorrow.month, tomorrow.day, 23),
+                      'timezone': timezone},
+            'functions': [lead_image],
+            'extra': {'lead_image': {'filepath': os.path.join(data_path, 'concert.jpg')}},
+            'trans': ['publish_and_hide'],
+        },
+        {
+            'cont': '/evenements', 'type': 'Event',
+            'title': 'Marché aux fleurs',
+            'attrs': {'description': 'Vener découvrir notre marché aux fleurs',
+                      'start': tomorrow,
+                      'end': tomorrow + datetime.timedelta(weeks=1),
+                      'timezone': timezone},
+            'functions': [lead_image],
+            'extra': {'lead_image': {'filepath': os.path.join(data_path, 'marcheauxfleurs.jpg')}},
+            'trans': ['publish_and_hide'],
+        },
     ]
-    for e in events:
-        event = api.content.create(
-            container=event_folder,
-            type='Event',
-            title=e['title']
-        )
-        event.title = e['title']
-        event.description = e['desc']
-        event.timezone = timezone
-        behavior = IEventBasic(event)
-        behavior.start = e['start']
-        behavior.end = e['end']
-        add_leadimage_from_file(event, e['img'])
-        if e.get('alaune'):
-            add_alaune(event)
-        api.content.transition(obj=event, transition='publish_and_hide')
-        event.reindexObject()
+    create(events)
 
 
 def add_news(portal):
@@ -161,22 +152,22 @@ def add_folders(portal):
             'trans': ['publish_and_hide'],
         },
         {
-            'cid': 240, 'cont': 200, 'typ': 'Folder',
+            'cid': 240, 'cont': 200, 'type': 'Folder',
             'title': u'Autres services',
             'trans': ['publish_and_show'],
         },
         {
-            'cid': 250, 'cont': 240, 'typ': 'Folder',
+            'cid': 250, 'cont': 240, 'type': 'Folder',
             'title': u'CPAS',
             'trans': ['publish_and_show'],
         },
         {
-            'cid': 260, 'cont': 250, 'typ': 'Folder',
+            'cid': 260, 'cont': 250, 'type': 'Folder',
             'title': u'Album photos',
             'trans': ['publish_and_show'],
         },
         {
-            'cid': 300, 'cont': '/loisirs', 'typ': 'Folder',
+            'cid': 300, 'cont': '/loisirs', 'type': 'Folder',
             'title': u'Sports',
             'trans': ['publish_and_show'],
         },
@@ -256,12 +247,12 @@ def add_folders(portal):
             'trans': ['publish_and_show'],
         },
         {
-            'cid': 820, 'cont': '/je-suis', 'typ': 'Folder',
+            'cid': 820, 'cont': '/je-suis', 'type': 'Folder',
             'title': u'Nouvel habitant',
             'trans': ['publish_and_show'],
         },
         {
-            'cid': 900, 'cont': '/je-trouve', 'typ': 'Folder',
+            'cid': 900, 'cont': '/je-trouve', 'type': 'Folder',
             'title': u'Démarches administratives',
             'trans': ['publish_and_show'],
         },
@@ -273,31 +264,6 @@ def add_folders(portal):
     ]
 
     create(folders)
-
-
-def add_leadimage_from_file(obj, file_name):
-    data_path = os.path.join(os.path.dirname(__file__), 'data')
-    file_path = os.path.join(data_path, file_name)
-    if not obj.hasObject(file_name):
-        from plone.namedfile.file import NamedBlobImage
-        namedblobimage = NamedBlobImage(
-            data=open(file_path, 'r').read(),
-            filename=unicode(file_name)
-        )
-        image = api.content.create(type='Image',
-                                   title=file_name,
-                                   image=namedblobimage,
-                                   container=api.portal.get(),
-                                   language='fr')
-        image.setTitle(file_name)
-        image.reindexObject()
-        setattr(obj, 'image', namedblobimage)
-
-
-def add_news_image_from_file(obj, file_name):
-    if not obj.hasObject(file_name):
-        # with deterity image
-        add_leadimage_from_file(obj, file_name)
 
 
 def add_image_from_file(container, file_name):
