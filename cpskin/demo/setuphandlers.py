@@ -24,6 +24,21 @@ def post_install(context):
     add_users(portal)
 
 
+def exists(portal, parent, id='', title='', type=''):
+    pc = portal.portal_catalog
+    params = {'path': {'query': '/'.join(parent.getPhysicalPath()), 'depth': 1}}
+    if id:
+        params['id'] = id
+    if title:
+        params['Title'] = title
+    if type:
+        params['portal_type'] = type
+    brains = pc(**params)
+    if brains:
+        return brains[0].getObject()
+    return None
+
+
 def add_events(portal):
     """Add some demo events."""
     timezone = 'Europe/Brussels'
@@ -123,67 +138,56 @@ def add_tag(obj, tag={u'id': u'value'}):
 
 
 def add_folders(portal):
-    folders = [{
-        'ma-commune': {
-            u'Vie politique':
-                [u'Collège communal', u'Conseil communal'],
-            u'Services communaux':
-                [ u'Population-Etat civil', u'Informatique', u'Heures d\'ouverture']
-        },
-        'loisirs': {
-            u'Sports':
-                [u'Piscine communale', u'Annuaire des clubs sportifs'],
-            u'Folklores':
-                [u'Carnaval', u'Marché de Noël'],
-            u'Tourisme':
-                [u'Barrage']
-        },
-        'economie': {
-            u'L\'entreprenariat':
-                [u'CSAM', u'EId'],
-            u'Zonings':
-                [u'Industriels', u'Port'],
-        },
-        'je-suis': [u'Jeune', u'Entrepreneur'],
-        'je-trouve': [u'Démarches administratives', u'Taxes'],
-    }]
-    for f in folders:
-        for f_id in f.keys():
-            folder_first_level = portal.get(f_id)
-            folder_dict = f[f_id]
-            if isinstance(folder_dict, dict):
-                for f_second_level_title in folder_dict.keys():
-                    f_second_level = api.content.create(
-                        container=folder_first_level,
-                        type='Folder',
-                        title=f_second_level_title)
-                    f_second_level.setTitle(f_second_level_title)
-                    f_second_level.reindexObject()
-                    api.content.transition(
-                        obj=f_second_level,
-                        transition='publish_and_show')
 
-                    for f_third_level_title in folder_dict[f_second_level_title]:
-                        f_third_level = api.content.create(
-                            container=f_second_level,
-                            type='Folder',
-                            title=f_third_level_title)
-                        f_third_level.setTitle(f_third_level_title)
-                        f_third_level.reindexObject()
-                        api.content.transition(
-                            obj=f_third_level,
-                            transition='publish_and_show')
-            if isinstance(folder_dict, list):
-                for f_third_level_title in folder_dict:
-                        f_third_level = api.content.create(
-                            container=folder_first_level,
-                            type='Folder',
-                            title=f_third_level_title)
-                        f_third_level.setTitle(f_third_level_title)
-                        f_third_level.reindexObject()
-                        api.content.transition(
-                            obj=f_third_level,
-                            transition='publish_and_show')
+    def create_folders(portal, folders, transition='publish_and_show'):
+        for dic1 in folders:
+            for f1_id in dic1:
+                f1 = portal.get(f1_id)
+                dic2 = dic1[f1_id]
+                if isinstance(dic2, dict):
+                    for f2_tit in dic2:
+                        f2 = exists(portal, f1, title=f2_tit)
+                        if not f2:
+                            f2 = api.content.create(container=f1, type='Folder', title=f2_tit)
+                            api.content.transition(obj=f2, transition=transition)
+
+                        for f3_tit in dic2[f2_tit]:
+                            f3 = exists(portal, f2, title=f3_tit)
+                            if not f3:
+                                f3 = api.content.create(container=f2, type='Folder', title=f3_tit)
+                                api.content.transition(obj=f3, transition=transition)
+                if isinstance(dic2, list):
+                    for f2_tit in dic2:
+                        f2 = exists(portal, f1, title=f2_tit)
+                        if not f2:
+                            f2 = api.content.create(container=f1, type='Folder', title=f2_tit)
+                            api.content.transition(obj=f2, transition=transition)
+
+    folders_to_show = [
+        {'ma-commune': {
+            u'Vie politique': [u'Collège communal', u'Conseil communal'],
+            u'Services communaux': [u'Population-Etat civil', u'Informatique']
+        }},
+        {'loisirs': {
+            u'Sports': [u'Piscine communale', u'Annuaire des clubs sportifs'],
+            u'Folklores': [u'Carnaval', u'Marché de Noël'],
+            u'Tourisme': [u'Barrage']
+        }},
+        {'economie': {
+            u"L'entreprenariat": [u'CSAM', u'EId'],
+            u'Zonings': [u'Industriels', u'Port'],
+        }},
+        {'je-suis': [u'Jeune', u'Entrepreneur']},
+        {'je-trouve': [u'Démarches administratives', u'Taxes']},
+    ]
+    create_folders(portal, folders_to_show)
+
+    folders_to_hide = [
+        {'ma-commune': {
+            u'Services communaux': [u"Heures d'ouverture"]
+        }},
+    ]
+    create_folders(portal, folders_to_hide, transition='publish_and_hide')
 
 
 def add_leadimage_from_file(obj, file_name):
