@@ -7,7 +7,7 @@ from zope.component import getUtility
 import datetime
 import os
 
-from imio.helpers.content import create
+from imio.helpers.content import create, richtextval, lead_image
 
 
 def post_install(context):
@@ -84,32 +84,30 @@ def add_events(portal):
 
 
 def add_news(portal):
-    news_folder = api.content.get('/actualites')
-    news = [{
-        'title': 'Nouvelle brasserie',
-        'desc': 'Une nouvelle brasserie va ouvrir ses portes près de chez vous',
-        'text': 'Bonjour, <br /><br />Une nouvelle brasserie va ouvrir ses portes près de chez vous',
-        'img': 'brasserie.jpg',
-        'alaune': True,
-    }, {
-        'title': 'Météo',
-        'desc': 'Attention à la météo de ces prochains jours',
-        'text': 'Bonjour, <br /><br />Faites attention à la météo de ces prochains jours',
-        'img': 'meteo.jpg'
-    },
+    data_path = os.path.join(os.path.dirname(__file__), 'data')
+    news = [
+        {
+            'cont': '/actualites', 'type': 'News Item',
+            'title': 'Nouvelle brasserie',
+            'attrs': {'description': 'Une nouvelle brasserie va ouvrir ses portes près de chez vous',
+                      'text': richtextval('Bonjour, <br /><br />Une nouvelle brasserie va ouvrir ses portes près de '
+                                          'chez vous'),
+                      'hiddenTags': set([u'a-la-une', ])},
+            'functions': [lead_image],
+            'extra': {'lead_image': {'filepath': os.path.join(data_path, 'brasserie.jpg')}},
+            'trans': ['publish_and_hide'],
+        },
+        {
+            'cont': '/actualites', 'type': 'News Item',
+            'title': 'Météo',
+            'attrs': {'description': 'Attention à la météo de ces prochains jours',
+                      'text': richtextval('Bonjour, <br /><br />Faites attention à la météo de ces prochains jours'),},
+            'functions': [lead_image],
+            'extra': {'lead_image': {'filepath': os.path.join(data_path, 'meteo.jpg')}},
+            'trans': ['publish_and_hide'],
+        },
     ]
-    for actualite in news:
-        actu = api.content.create(
-            container=news_folder,
-            type='News Item',
-            title=actualite['title']
-        )
-        actu.title = actualite['title']
-        add_news_image_from_file(actu, actualite['img'])
-        if actualite.get('alaune'):
-            add_alaune(actu)
-        api.content.transition(obj=actu, transition='publish_and_hide')
-        actu.reindexObject()
+    create(news)
 
 
 def add_alaune(obj):
