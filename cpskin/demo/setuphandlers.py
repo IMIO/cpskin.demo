@@ -163,6 +163,21 @@ def add_folders(portal):
             'trans': ['publish_and_hide'],
         },
         {
+            'cid': 240, 'cont': 200, 'typ': 'Folder',
+            'title': u'Autres services',
+            'trans': ['publish_and_show'],
+        },
+        {
+            'cid': 250, 'cont': 240, 'typ': 'Folder',
+            'title': u'CPAS',
+            'trans': ['publish_and_show'],
+        },
+        {
+            'cid': 260, 'cont': 250, 'typ': 'Folder',
+            'title': u'Album photos',
+            'trans': ['publish_and_show'],
+        },
+        {
             'cid': 300, 'cont': '/loisirs', 'typ': 'Folder',
             'title': u'Sports',
             'trans': ['publish_and_show'],
@@ -240,6 +255,11 @@ def add_folders(portal):
         {
             'cid': 810, 'cont': '/je-suis', 'typ': 'Folder',
             'title': u'Entrepreneur',
+            'trans': ['publish_and_show'],
+        },
+        {
+            'cid': 820, 'cont': '/je-suis', 'typ': 'Folder',
+            'title': u'Nouvel habitant',
             'trans': ['publish_and_show'],
         },
         {
