@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
-from plone import api
 from plone.app.event.interfaces import IEventSettings
 from plone.registry.interfaces import IRegistry
 from zope.component import getUtility
 import datetime
 import os
 
-from imio.helpers.content import create, richtextval, lead_image
+from imio.helpers.content import create, richtextval, add_image
 
 
 def post_install(context):
@@ -44,8 +43,8 @@ def add_events(portal):
                       'end': datetime.datetime(now.year, now.month, now.day, 21),
                       'timezone': timezone,
                       'hiddenTags': set([u'a-la-une', ])},
-            'functions': [lead_image],
-            'extra': {'lead_image': {'filepath': os.path.join(data_path, 'atelierphoto.jpg')}},
+            'functions': [add_image],
+            'extra': {'add_image': {'filepath': os.path.join(data_path, 'atelierphoto.jpg')}},
             'trans': ['publish_and_hide'],
         },
         {
@@ -55,8 +54,8 @@ def add_events(portal):
                       'start': datetime.datetime(tomorrow.year, tomorrow.month, tomorrow.day, 21),
                       'end': datetime.datetime(tomorrow.year, tomorrow.month, tomorrow.day, 23),
                       'timezone': timezone},
-            'functions': [lead_image],
-            'extra': {'lead_image': {'filepath': os.path.join(data_path, 'concert.jpg')}},
+            'functions': [add_image],
+            'extra': {'add_image': {'filepath': os.path.join(data_path, 'concert.jpg')}},
             'trans': ['publish_and_hide'],
         },
         {
@@ -66,8 +65,8 @@ def add_events(portal):
                       'start': tomorrow,
                       'end': tomorrow + datetime.timedelta(weeks=1),
                       'timezone': timezone},
-            'functions': [lead_image],
-            'extra': {'lead_image': {'filepath': os.path.join(data_path, 'marcheauxfleurs.jpg')}},
+            'functions': [add_image],
+            'extra': {'add_image': {'filepath': os.path.join(data_path, 'marcheauxfleurs.jpg')}},
             'trans': ['publish_and_hide'],
         },
     ]
@@ -84,8 +83,8 @@ def add_news(portal):
                       'text': richtextval('Bonjour, <br /><br />Une nouvelle brasserie va ouvrir ses portes près de '
                                           'chez vous'),
                       'hiddenTags': set([u'a-la-une', ])},
-            'functions': [lead_image],
-            'extra': {'lead_image': {'filepath': os.path.join(data_path, 'brasserie.jpg')}},
+            'functions': [add_image],
+            'extra': {'add_image': {'filepath': os.path.join(data_path, 'brasserie.jpg')}},
             'trans': ['publish_and_hide'],
         },
         {
@@ -93,24 +92,12 @@ def add_news(portal):
             'title': 'Météo',
             'attrs': {'description': 'Attention à la météo de ces prochains jours',
                       'text': richtextval('Bonjour, <br /><br />Faites attention à la météo de ces prochains jours'),},
-            'functions': [lead_image],
-            'extra': {'lead_image': {'filepath': os.path.join(data_path, 'meteo.jpg')}},
+            'functions': [add_image],
+            'extra': {'add_image': {'filepath': os.path.join(data_path, 'meteo.jpg')}},
             'trans': ['publish_and_hide'],
         },
     ]
     create(news)
-
-
-def add_alaune(obj):
-    obj.hiddenTags = set([u'a-la-une', ])
-    pass
-
-
-def add_tag(obj, tag={u'id': u'value'}):
-    # XXX get older value before adding one new
-    # value = set([tag['value'], ])
-    # setattr(obj, tag['id'], value)
-    pass
 
 
 def add_folders(portal):
@@ -266,36 +253,34 @@ def add_folders(portal):
     create(folders)
 
 
-def add_image_from_file(container, file_name):
-    data_path = os.path.join(os.path.dirname(__file__), 'data')
-    filePath = os.path.join(data_path, file_name)
-    if not container.hasObject(file_name):
-        # with deterity image
-        from plone.namedfile.file import NamedBlobImage
-        namedblobimage = NamedBlobImage(
-            data=open(filePath, 'r').read(),
-            filename=unicode(file_name)
-        )
-        image = api.content.create(type='Image',
-                                   title=file_name,
-                                   image=namedblobimage,
-                                   container=container,
-                                   language='fr')
-        image.setTitle(file_name)
-        image.reindexObject()
-
-
 def add_album(portal):
-    folder = api.content.create(
-        container=portal,
-        type='Folder',
-        id='album')
-    folder.setTitle("Album")
-    folder.reindexObject()
-    add_image_from_file(folder, 'moto.jpg')
-    add_image_from_file(folder, 'meteo.jpg')
-    api.content.transition(obj=folder, transition='publish_and_hide')
-    folder.setLayout('galleryview')
+    data_path = os.path.join(os.path.dirname(__file__), 'data')
+    objects = [
+        {
+            'cid': 10,
+            'cont': '/', 'type': 'Folder',
+            'title': 'Album',
+            'trans': ['publish_and_hide'],
+        },
+        {
+            'cid': 15,
+            'cont': 10, 'type': 'Image',
+            'title': 'Moto',
+            'functions': [add_image],
+            'extra': {'add_image': {'filepath': os.path.join(data_path, 'moto.jpg')}},
+            'trans': ['publish_and_hide'],
+        },
+        {
+            'cid': 20,
+            'cont': 10, 'type': 'Image',
+            'title': 'Météo',
+            'functions': [add_image],
+            'extra': {'add_image': {'filepath': os.path.join(data_path, 'meteo.jpg')}},
+            'trans': ['publish_and_hide'],
+        },
+    ]
+    cids = create(objects)
+    cids[10].setLayout('galleryview')
 
 
 def add_users(portal):
