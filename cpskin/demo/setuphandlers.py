@@ -48,7 +48,7 @@ def add_events(portal):
                       'end': datetime.datetime(now.year, now.month, now.day, 21),
                       'timezone': timezone,
                       'hiddenTags': set([u'a-la-une', ])},
-            'functions': [(add_image, {'filepath': get_path('atelierphoto.jpg')})],
+            'functions': [(add_image, [], {'filepath': get_path('atelierphoto.jpg')})],
             'trans': ['publish_and_hide'],
         },
         {
@@ -58,7 +58,7 @@ def add_events(portal):
                       'start': datetime.datetime(tomorrow.year, tomorrow.month, tomorrow.day, 21),
                       'end': datetime.datetime(tomorrow.year, tomorrow.month, tomorrow.day, 23),
                       'timezone': timezone},
-            'functions': [(add_image, {'filepath': get_path('concert.jpg')})],
+            'functions': [(add_image, [], {'filepath': get_path('concert.jpg')})],
             'trans': ['publish_and_hide'],
         },
         {
@@ -68,7 +68,7 @@ def add_events(portal):
                       'start': tomorrow,
                       'end': tomorrow + datetime.timedelta(weeks=1),
                       'timezone': timezone},
-            'functions': [(add_image, {'filepath': get_path('marcheauxfleurs.jpg')})],
+            'functions': [(add_image, [], {'filepath': get_path('marcheauxfleurs.jpg')})],
             'trans': ['publish_and_hide'],
         },
     ]
@@ -76,7 +76,6 @@ def add_events(portal):
 
 
 def add_news(portal):
-    data_path = os.path.join(os.path.dirname(__file__), 'data')
     news = [
         {
             'cont': '/actualites', 'type': 'News Item',
@@ -85,15 +84,15 @@ def add_news(portal):
                       'text': richtextval('Bonjour, <br /><br />Une nouvelle brasserie va ouvrir ses portes près de '
                                           'chez vous'),
                       'hiddenTags': set([u'a-la-une', ])},
-            'functions': [(add_image, {'filepath': get_path('brasserie.jpg')})],
+            'functions': [(add_image, [], {'filepath': get_path('brasserie.jpg')})],
             'trans': ['publish_and_hide'],
         },
         {
             'cont': '/actualites', 'type': 'News Item',
             'title': 'Météo',
             'attrs': {'description': 'Attention à la météo de ces prochains jours',
-                      'text': richtextval('Bonjour, <br /><br />Faites attention à la météo de ces prochains jours'),},
-            'functions': [(add_image, {'filepath': get_path('meteo.jpg')})],
+                      'text': richtextval('Bonjour, <br /><br />Faites attention à la météo de ces prochains jours')},
+            'functions': [(add_image, [], {'filepath': get_path('meteo.jpg')})],
             'trans': ['publish_and_hide'],
         },
     ]
@@ -254,7 +253,6 @@ def add_folders(portal):
 
 
 def add_album(portal):
-    data_path = os.path.join(os.path.dirname(__file__), 'data')
     objects = [
         {
             'cid': 10,
@@ -266,14 +264,14 @@ def add_album(portal):
             'cid': 15,
             'cont': 10, 'type': 'Image',
             'title': 'Moto',
-            'functions': [(add_image, {'filepath': get_path('moto.jpg')})],
+            'functions': [(add_image, [], {'filepath': get_path('moto.jpg')})],
             'trans': ['publish_and_hide'],
         },
         {
             'cid': 20,
             'cont': 10, 'type': 'Image',
             'title': 'Météo',
-            'functions': [(add_image, {'filepath': get_path('meteo.jpg')})],
+            'functions': [(add_image, [], {'filepath': get_path('meteo.jpg')})],
             'trans': ['publish_and_hide'],
         },
     ]
