@@ -7,6 +7,12 @@ import os
 
 from imio.helpers.content import create, richtextval, add_image
 
+data_path = os.path.join(os.path.dirname(__file__), 'data')
+
+
+def get_path(filename):
+    return os.path.join(data_path, filename)
+
 
 def post_install(context):
     """Post install script."""
@@ -33,7 +39,6 @@ def add_events(portal):
         settings.portal_timezone = timezone
     now = datetime.datetime.now()
     tomorrow = datetime.datetime(now.year, now.month, now.day + 1)
-    data_path = os.path.join(os.path.dirname(__file__), 'data')
     events = [
         {
             'cont': '/evenements', 'type': 'Event',
@@ -43,8 +48,7 @@ def add_events(portal):
                       'end': datetime.datetime(now.year, now.month, now.day, 21),
                       'timezone': timezone,
                       'hiddenTags': set([u'a-la-une', ])},
-            'functions': [add_image],
-            'extra': {'add_image': {'filepath': os.path.join(data_path, 'atelierphoto.jpg')}},
+            'functions': [(add_image, {'filepath': get_path('atelierphoto.jpg')})],
             'trans': ['publish_and_hide'],
         },
         {
@@ -54,8 +58,7 @@ def add_events(portal):
                       'start': datetime.datetime(tomorrow.year, tomorrow.month, tomorrow.day, 21),
                       'end': datetime.datetime(tomorrow.year, tomorrow.month, tomorrow.day, 23),
                       'timezone': timezone},
-            'functions': [add_image],
-            'extra': {'add_image': {'filepath': os.path.join(data_path, 'concert.jpg')}},
+            'functions': [(add_image, {'filepath': get_path('concert.jpg')})],
             'trans': ['publish_and_hide'],
         },
         {
@@ -65,8 +68,7 @@ def add_events(portal):
                       'start': tomorrow,
                       'end': tomorrow + datetime.timedelta(weeks=1),
                       'timezone': timezone},
-            'functions': [add_image],
-            'extra': {'add_image': {'filepath': os.path.join(data_path, 'marcheauxfleurs.jpg')}},
+            'functions': [(add_image, {'filepath': get_path('marcheauxfleurs.jpg')})],
             'trans': ['publish_and_hide'],
         },
     ]
@@ -83,8 +85,7 @@ def add_news(portal):
                       'text': richtextval('Bonjour, <br /><br />Une nouvelle brasserie va ouvrir ses portes près de '
                                           'chez vous'),
                       'hiddenTags': set([u'a-la-une', ])},
-            'functions': [add_image],
-            'extra': {'add_image': {'filepath': os.path.join(data_path, 'brasserie.jpg')}},
+            'functions': [(add_image, {'filepath': get_path('brasserie.jpg')})],
             'trans': ['publish_and_hide'],
         },
         {
@@ -92,8 +93,7 @@ def add_news(portal):
             'title': 'Météo',
             'attrs': {'description': 'Attention à la météo de ces prochains jours',
                       'text': richtextval('Bonjour, <br /><br />Faites attention à la météo de ces prochains jours'),},
-            'functions': [add_image],
-            'extra': {'add_image': {'filepath': os.path.join(data_path, 'meteo.jpg')}},
+            'functions': [(add_image, {'filepath': get_path('meteo.jpg')})],
             'trans': ['publish_and_hide'],
         },
     ]
@@ -266,16 +266,14 @@ def add_album(portal):
             'cid': 15,
             'cont': 10, 'type': 'Image',
             'title': 'Moto',
-            'functions': [add_image],
-            'extra': {'add_image': {'filepath': os.path.join(data_path, 'moto.jpg')}},
+            'functions': [(add_image, {'filepath': get_path('moto.jpg')})],
             'trans': ['publish_and_hide'],
         },
         {
             'cid': 20,
             'cont': 10, 'type': 'Image',
             'title': 'Météo',
-            'functions': [add_image],
-            'extra': {'add_image': {'filepath': os.path.join(data_path, 'meteo.jpg')}},
+            'functions': [(add_image, {'filepath': get_path('meteo.jpg')})],
             'trans': ['publish_and_hide'],
         },
     ]
