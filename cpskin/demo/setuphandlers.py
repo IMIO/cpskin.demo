@@ -28,6 +28,7 @@ def post_install(context):
     add_folders(portal)
     add_album(portal)
     add_users(portal)
+    add_document(portal)
 
 
 def add_events(portal):
@@ -71,6 +72,16 @@ def add_events(portal):
             'functions': [(add_image, [], {'filepath': get_path('marcheauxfleurs.jpg')})],
             'trans': ['publish_and_hide'],
         },
+        {
+            'cont': '/evenements', 'type': 'Event',
+            'title': 'Carnaval',
+            'attrs': {'description': 'Venez fêter le carnaval',
+                      'start': datetime.datetime(tomorrow.year, tomorrow.month, tomorrow.day, 15),
+                      'end': datetime.datetime(tomorrow.year, tomorrow.month, tomorrow.day, 18),
+                      'timezone': timezone},
+            'functions': [(add_image, [], {'filepath': get_path('sorciere.jpg')})],
+            'trans': ['publish_and_hide'],
+        },
     ]
     create(events)
 
@@ -97,6 +108,24 @@ def add_news(portal):
         },
     ]
     create(news)
+
+
+def add_document(portal):
+    document = [
+        {
+            'cont': '/', 'type': 'Document',
+            'title': 'Mot clés',
+            'attrs': {'iamTags': set([u'jeune', u'entrepreneur', u'nouvel habitant']),
+                      'isearchTags': set([u'démarches administrative']), },
+        },
+        {
+            'cont': 110, 'type': 'Document',
+            'title': 'Le collège communal',
+            'attrs': {'description': 'Présentation collège communal', },
+            'trans': ['publish_and_show'],
+        },
+    ]
+    create(document, globl=True)
 
 
 def add_folders(portal):
@@ -178,6 +207,11 @@ def add_folders(portal):
             'trans': ['publish_and_show'],
         },
         {
+            'cid': 415, 'cont': 400, 'type': 'Folder',
+            'title': u'Images folklores',
+            'trans': ['publish_and_hide'],
+        },
+        {
             'cid': 420, 'cont': 400, 'type': 'Folder',
             'title': u'Marché de Noël',
             'trans': ['publish_and_show'],
@@ -249,7 +283,7 @@ def add_folders(portal):
         },
     ]
 
-    create(folders)
+    create(folders, globl=True)
 
 
 def add_album(portal):
@@ -274,8 +308,43 @@ def add_album(portal):
             'functions': [(add_image, [], {'filepath': get_path('meteo.jpg')})],
             'trans': ['publish_and_hide'],
         },
+        {
+            'cid': 25,
+            'cont': 110, 'type': 'Image',
+            'title': 'Collège',
+            'functions': [(add_image, [], {'filepath': get_path('college.png')})],
+            'trans': ['publish_and_hide'],
+        },
+        {
+            'cid': 30,
+            'cont': 415, 'type': 'Image',
+            'title': 'fille en rouge',
+            'functions': [(add_image, [], {'filepath': get_path('fille-rouge.jpg')})],
+            'trans': ['publish_and_hide'],
+        },
+        {
+            'cid': 31,
+            'cont': 415, 'type': 'Image',
+            'title': 'carnaval plume',
+            'functions': [(add_image, [], {'filepath': get_path('carnaval-plume.jpg')})],
+            'trans': ['publish_and_hide'],
+        },
+        {
+            'cid': 32,
+            'cont': 415, 'type': 'Image',
+            'title': 'masque carnanval',
+            'functions': [(add_image, [], {'filepath': get_path('masque-carnaval.jpg')})],
+            'trans': ['publish_and_hide'],
+        },
+        {
+            'cid': 33,
+            'cont': 415, 'type': 'Image',
+            'title': 'Sorcière',
+            'functions': [(add_image, [], {'filepath': get_path('sorciere.jpg')})],
+            'trans': ['publish_and_hide'],
+        },
     ]
-    cids = create(objects)
+    cids = create(objects, globl=True)
     cids[10].setLayout('galleryview')
 
 
