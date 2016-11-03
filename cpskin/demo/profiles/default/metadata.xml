@@ -4,5 +4,6 @@
   <dependencies>
     <dependency>profile-collective.plonetruegallery:default</dependency>
     <dependency>profile-cpskin.policy:dx</dependency>
+    <dependency>profile-collective.contact.core:default</dependency>
   </dependencies>
 </metadata>

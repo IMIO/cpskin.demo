@@ -29,6 +29,7 @@ def post_install(context):
     add_album(portal)
     add_users(portal)
     add_document(portal)
+    add_directory(portal)
 
 
 def add_events(portal):
@@ -39,7 +40,7 @@ def add_events(portal):
     if not settings.portal_timezone:
         settings.portal_timezone = timezone
     now = datetime.datetime.now()
-    tomorrow = datetime.datetime(now.year, now.month, now.day + 1)
+    tomorrow = datetime.datetime.today() + datetime.timedelta(days=1)
     events = [
         {
             'cont': '/evenements', 'type': 'Event',
@@ -286,6 +287,50 @@ def add_folders(portal):
     create(folders, globl=True)
 
 
+def add_leadimage_from_file(obj, file_name):
+    data_path = os.path.join(os.path.dirname(__file__), 'data')
+    file_path = os.path.join(data_path, file_name)
+    if not obj.hasObject(file_name):
+        from plone.namedfile.file import NamedBlobImage
+        namedblobimage = NamedBlobImage(
+            data=open(file_path, 'r').read(),
+            filename=unicode(file_name)
+        )
+        image = api.content.create(type='Image',
+                                   title=file_name,
+                                   image=namedblobimage,
+                                   container=api.portal.get(),
+                                   language='fr')
+        image.setTitle(file_name)
+        image.reindexObject()
+        setattr(obj, 'image', namedblobimage)
+
+
+def add_news_image_from_file(obj, file_name):
+    if not obj.hasObject(file_name):
+        # with deterity image
+        add_leadimage_from_file(obj, file_name)
+
+
+def add_image_from_file(container, file_name):
+    data_path = os.path.join(os.path.dirname(__file__), 'data')
+    filePath = os.path.join(data_path, file_name)
+    if not container.hasObject(file_name):
+        # with deterity image
+        from plone.namedfile.file import NamedBlobImage
+        namedblobimage = NamedBlobImage(
+            data=open(filePath, 'r').read(),
+            filename=unicode(file_name)
+        )
+        image = api.content.create(type='Image',
+                                   title=file_name,
+                                   image=namedblobimage,
+                                   container=container,
+                                   language='fr')
+        image.setTitle(file_name)
+        image.reindexObject()
+
+
 def add_album(portal):
     objects = [
         {
@@ -350,3 +395,62 @@ def add_album(portal):
 
 def add_users(portal):
     pass
+
+
+def add_directory(portal):
+    position_types = [{'name': u'Directeur', 'token': u'directeur'}]
+    organization_types = [{'name': u'Communal', 'token': u'communal'},
+                          {'name': u'Privé', 'token': u'prive'}]
+    organization_levels = [{'name': u'Intérieur', 'token': u'interieur'},
+                           {'name': u'Exttérieur', 'token': u'exterieur'}]
+
+    params = {'position_types': position_types,
+              'organization_types': organization_types,
+              'organization_levels': organization_levels}
+    sportif = api.content.create(
+        container=portal,
+        type='directory',
+        id='annuaire-club-sportifs',
+        title=u'Annuaire des clubs sportifs',
+        **params
+    )
+
+    params = {
+        'title': u'Imio',
+        'organization_type': u'communal',
+    }
+    organization1 = api.content.create(
+        container=sportif,
+        type='organization',
+        id='imio',
+        **params)
+
+    params = {'position_types': position_types,
+              'organization_types': organization_types,
+              'organization_levels': organization_levels}
+    fonctionnaires = api.content.create(
+        container=portal,
+        type='directory',
+        id='annuaire-des-fonctionnaires',
+        title='Annuaire des fonctionnaires',
+        **params)
+
+    person = api.content.create(
+        container=fonctionnaires, type='person', id='foobar')
+    person.firstname = u'Foo'
+    person.lastname = u'Bar'
+    person.gender = u'F'
+    person.street = u'Zoning Industriel'
+    person.number = u'34'
+    person.zip_code = u'5190'
+    person.city = u'Mornimont'
+
+    params = {
+        'title': u'Anciens fonctionnaires',
+        'organization_type': u'prive',
+    }
+    organization2 = api.content.create(
+        container=fonctionnaires,
+        type='organization',
+        id='organization2',
+        **params)
