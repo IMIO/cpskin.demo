@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from plone import api
 from plone.app.event.interfaces import IEventSettings
 from plone.registry.interfaces import IRegistry
 from zope.component import getUtility
